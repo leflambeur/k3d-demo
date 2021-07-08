@@ -1,0 +1,1 @@
+k3d cluster create test-cluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -v $PWD/manifests:/var/lib/rancher/k3s/server/manifests/demo
