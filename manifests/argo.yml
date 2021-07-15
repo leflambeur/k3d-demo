@@ -14,21 +14,41 @@ spec:
   chart: argo-workflows
   targetNamespace: argo
   repo: https://argoproj.github.io/argo-helm
+  valuesContent: |-
+    singleNamespace: true
+    controller:
+      workflowNamespaces:
+        - argo
+      containerRuntimeExecutor: k8sapi
+    server:
+      baseHref: "/argo/"
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
-  name: argo-ingress
+  name: http-redirect-ingressroute
   namespace: argo
 spec:
-  rules:
-  - http:
-      paths:
-      - path: /argo/
-        pathType: Prefix
-        backend:
-          service:
-            name: argo-argo-workflows-server 
-            port:
-              number: 2746
-
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/argo`)
+      kind: Rule
+      services:
+        - name: argo-argo-workflows-server
+          namespace: argo
+          port: 2746
+          scheme: http
+      middlewares:
+        - name: argo-prefix
+---
+# Replace path with regex
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: argo-prefix
+  namespace: argo
+spec:
+  stripPrefix:
+    prefixes:
+      - /argo
