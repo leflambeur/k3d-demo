@@ -1,1 +1,2 @@
-k3d cluster create test-cluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -v $PWD/manifests:/var/lib/rancher/k3s/server/manifests/demo
+k3d registry create registry.localhost --port 5000
+k3d cluster create test-cluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -v $PWD/manifests:/var/lib/rancher/k3s/server/manifests/demo --registry-use k3d-registry.localhost:5000

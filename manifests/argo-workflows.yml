@@ -22,3 +22,164 @@ spec:
       image: argoproj/argosay:v2
       name: main
     name: argosay
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  annotations:
+    workflows.argoproj.io/description: This is a test workflow for building an application and generating an sbom.
+    workflows.argoproj.io/maintainer: '@wgodfrey'
+    workflows.argoproj.io/tags: SBOM
+    workflows.argoproj.io/version: '>= 2.9.0'
+  name: release-with-sbom
+  namespace: argo
+spec:
+  serviceAccountName: argo-argo-workflows-workflow-controller
+  entrypoint: release-with-sbom      
+  volumes:
+    - name: rkvst-auth-token
+      secret:
+        secretName: rkvst-auth-token
+    - name: out
+      emptyDir: {}
+  arguments:
+    parameters:
+      - name: asset_id
+        value: assets/a51b37d8-c706-4808-a2f7-5cba64789b53
+      - name: build_context
+        value: git://github.com/foundriesio/containers.git
+      - name: dockerfile
+        value: Dockerfile
+      - name: sub_context
+        value: shellhttpd
+      - name: registry
+        value: 172.20.0.2:5000
+      - name: resultant_image
+        value: foundriesio-shellhttpd
+      - name: version
+        value: v4.1.5
+      - name: sbom_version
+        value: v4_1_5 
+      - name: author
+        value: leflambeur
+      - name: supplier
+        value: foundriesio
+  templates:
+    - name: builder
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        args: 
+         - "--dockerfile={{workflow.parameters.dockerfile}}"
+         - "--context={{workflow.parameters.build_context}}"
+         - "--destination={{workflow.parameters.registry}}/{{workflow.parameters.resultant_image}}:{{workflow.parameters.version}}"
+         - "--context-sub-path={{workflow.parameters.sub_context}}"
+        name: kaniko
+    - name: sbom-generation
+      container: 
+        image: yewnorosen/syft-temp:latest
+        args:
+         - "registry:{{workflow.parameters.registry}}/{{workflow.parameters.resultant_image}}:{{workflow.parameters.version}}"
+         - -o
+         - spdx-json
+         - "/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"
+        name: syft
+        volumeMounts:
+          - name: out
+            mountPath: /mnt/out
+      #outputs:
+        #artifacts:
+         # - name: sbom
+          #  path: "/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"
+    - name: sbom-file-preperation
+      #inputs:
+       # artifacts:
+        # - name: sbom
+         #  path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+      container:
+        image: alpine:latest
+        command: ["/bin/cat"]
+        arg:
+          - name: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+    - name: sbom-output-parsing
+      #inputs:
+       # artifacts:
+        #  - name: sbom
+         #   path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+      container:
+        image: alpine:latest
+        command: ["/bin/echo"]
+        arg:
+          - "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+    - name: release-event
+      inputs:
+        parameters:
+          - name: sbom_attrs
+          - name: attachments
+          - name: latest_sbom
+          - name: custom_attrs
+          - name: custom_asset_attrs
+        #artifacts:
+         # - name: sbom
+          #  path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+      container:
+        image: yewnorosen/rkvst-sbom:latest
+        args:
+          - release
+          - "{{ workflow.parameters.asset_id }}"
+          - "{{ inputs.parameters.sbom_attrs }}"
+          - "{{ inputs.parameters.attachments }}"
+          - "{{ inputs.parameters.latest_sbom }}"
+          - "{{ inputs.parameters.custom_attrs }}"
+          - "{{ inputs.parameters.custom_asset_attrs }}"
+        env:
+          - name: AUTH_TOKEN  # name of env var
+            valueFrom:
+              secretKeyRef:
+                name: rkvst-auth-token     # name of an existing k8s secret
+                key: .auth_token
+        volumeMounts:
+          - name: out
+            mountPath: /mnt/out 
+    - name: release-with-sbom
+      dag:
+        tasks:
+          - name: build-image
+            template: builder
+          - name: generate-sbom
+            dependencies: [build-image]
+            template: sbom-generation
+          - name: prepare-sbom-file
+            template: sbom-file-preperation
+           # arguments:
+            #  artifacts:
+             #   - name: sbom
+              #    from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+            dependencies: [generate-sbom]
+          - name: parse-sbom-output
+            template: sbom-output-parsing
+            #arguments: 
+             # artifacts:
+              #  - name: sbom
+               #   from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+            dependencies: [generate-sbom]
+          - name: create-release-event
+            template: release-event
+            arguments:
+              #artifacts:
+               # - name: sbom
+                #  from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+              parameters:
+                - name: sbom_attrs
+                  value: "{}"
+                - name: attachments
+                  value: '["/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"]'
+                - name: latest_sbom
+                  value: "{}"
+                - name: custom_attrs
+                  value: "{}"
+                - name: custom_asset_attrs
+                  value: "{}"
+            dependencies: [parse-sbom-output, prepare-sbom-file]
+          - name: publish-image
+            template: builder
+            dependencies: [create-release-event]

@@ -1,1 +1,2 @@
 k3d cluster delete test-cluster
+k3d registry delete k3d-registry.localhost
