@@ -22,6 +22,31 @@ spec:
       containerRuntimeExecutor: pns
     server:
       baseHref: "/argo/"
+    useDefaultArtifactRepo: true
+    artifactRepository:
+      archiveLogs: false
+      s3:
+        insecure: true
+        endpoint: s3-proxy-svc.s3-proxy.svc.cluster.local
+        region: us-east-1
+        bucket: argobackend
+        accessKeySecret:
+          name: argo-artifacts
+          key: secretkey
+        secretKeySecret:
+          name: argo-artifacts
+          key: secretkey
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argo-artifacts
+  namespace: argo
+data:
+  accesskey: |
+    bG9jYWwtY3JlZGVudGlhbAo=
+  secretkey: |
+    cmVtb3RlLWNyZWRlbnRpYWw=
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute

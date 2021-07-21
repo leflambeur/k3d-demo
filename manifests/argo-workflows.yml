@@ -45,7 +45,7 @@ spec:
   arguments:
     parameters:
       - name: asset_id
-        value: assets/a51b37d8-c706-4808-a2f7-5cba64789b53
+        value: assets/fdd117ca-6bd1-4083-86e3-ec75ead6562f
       - name: build_context
         value: git://github.com/foundriesio/containers.git
       - name: dockerfile
@@ -73,6 +73,7 @@ spec:
          - "--context={{workflow.parameters.build_context}}"
          - "--destination={{workflow.parameters.registry}}/{{workflow.parameters.resultant_image}}:{{workflow.parameters.version}}"
          - "--context-sub-path={{workflow.parameters.sub_context}}"
+         - "--insecure"
         name: kaniko
     - name: sbom-generation
       container: 
@@ -81,30 +82,33 @@ spec:
          - "registry:{{workflow.parameters.registry}}/{{workflow.parameters.resultant_image}}:{{workflow.parameters.version}}"
          - -o
          - spdx-json
-         - "/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"
+         - "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
         name: syft
-        volumeMounts:
-          - name: out
-            mountPath: /mnt/out
-      #outputs:
-        #artifacts:
-         # - name: sbom
-          #  path: "/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"
+      outputs:
+        artifacts:
+          - name: sbom
+            path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+            s3:
+              key: sbom
     - name: sbom-file-preperation
-      #inputs:
-       # artifacts:
-        # - name: sbom
-         #  path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+      inputs:
+        artifacts:
+          - name: sbom
+            path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+            s3:
+              key: sbom
       container:
         image: alpine:latest
         command: ["/bin/cat"]
         arg:
           - name: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
     - name: sbom-output-parsing
-      #inputs:
-       # artifacts:
-        #  - name: sbom
-         #   path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+      inputs:
+        artifacts:
+          - name: sbom
+            path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+            s3:
+              key: sbom
       container:
         image: alpine:latest
         command: ["/bin/echo"]
@@ -118,9 +122,11 @@ spec:
           - name: latest_sbom
           - name: custom_attrs
           - name: custom_asset_attrs
-        #artifacts:
-         # - name: sbom
-          #  path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+        artifacts:
+          - name: sbom
+            path: "/tmp/{{workflow.parameters.sbom_version}}_sbom.json"
+            s3:
+              key: sbom
       container:
         image: yewnorosen/rkvst-sbom:latest
         args:
@@ -136,10 +142,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: rkvst-auth-token     # name of an existing k8s secret
-                key: .auth_token
-        volumeMounts:
-          - name: out
-            mountPath: /mnt/out 
+                key: .auth_token 
     - name: release-with-sbom
       dag:
         tasks:
@@ -150,31 +153,31 @@ spec:
             template: sbom-generation
           - name: prepare-sbom-file
             template: sbom-file-preperation
-           # arguments:
-            #  artifacts:
-             #   - name: sbom
-              #    from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+            arguments:
+              artifacts:
+                - name: sbom
+                  from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
             dependencies: [generate-sbom]
           - name: parse-sbom-output
             template: sbom-output-parsing
-            #arguments: 
-             # artifacts:
-              #  - name: sbom
-               #   from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+            arguments: 
+              artifacts:
+                - name: sbom
+                  from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
             dependencies: [generate-sbom]
           - name: create-release-event
             template: release-event
             arguments:
-              #artifacts:
-               # - name: sbom
-                #  from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
+              artifacts:
+                - name: sbom
+                  from: "{{tasks.generate-sbom.outputs.artifacts.sbom}}"
               parameters:
                 - name: sbom_attrs
-                  value: "{}"
+                  value: '{"name": "ACME Roadrunner Detector 2013 Coyote Edition SP1", "description": "v4.1.5 Release - ACME Roadrunner Detector 2013 Coyote Edition SP1", "hash": "a314fc2dc663ae7a6b6bc6787594057396e6b3f569cd50fd5ddb4d1bbafd2b6a", "version": "v4.1.5", "author": "The ACME Corporation", "supplier": "Coyote Services, Inc.", "uuid": "com.acme.rrd2013-ce-sp1-v4-1-5-0"}'
                 - name: attachments
-                  value: '["/mnt/out/{{workflow.parameters.sbom_version}}_sbom.json"]'
+                  value: '["/tmp/{{workflow.parameters.sbom_version}}_sbom.json"]'
                 - name: latest_sbom
-                  value: "{}"
+                  value: '{"name": "ACME Roadrunner Detector 2013 Coyote Edition SP1", "description": "v4.1.5 Release - ACME Roadrunner Detector 2013 Coyote Edition SP1", "hash": "a314fc2dc663ae7a6b6bc6787594057396e6b3f569cd50fd5ddb4d1bbafd2b6a", "version": "v4.1.5", "author": "The ACME Corporation", "supplier": "Coyote Services, Inc.", "uuid": "com.acme.rrd2013-ce-sp1-v4-1-5-0"}'
                 - name: custom_attrs
                   value: "{}"
                 - name: custom_asset_attrs
