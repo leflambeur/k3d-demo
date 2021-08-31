@@ -1,0 +1,1075 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Assets API",
+    "description": "API for asset and event management.",
+    "version": "2.0",
+    "contact": {
+      "name": "Jitsuin",
+      "url": "https://www.jitsuin.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "Assets"
+    }
+  ],
+  "host": "jitsuin.readthedocs.io",
+  "basePath": "/archivist/v2",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/archivist/v2/assets": {
+      "get": {
+        "summary": "List Archivist assets",
+        "description": "Retrieves a list of Archivist assets",
+        "operationId": "Assets_ListAssets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2ListAssetsResponse"
+            }
+          },
+          "206": {
+            "description": "The number of assets exceeds the servers limit. The approximate number of matching results is provided by the x-total-count header if the 'x-request-total-count' header on the request is set to 'true'. The exact limit is available in the content-range header. The value format is 'items 0-LIMIT/TOTAL'. Note that x-total-count is always present for 200 and 206 responses. It is the servers best available approximation. Similarly, in any result set, you may get a few more than LIMIT items.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to list Assets.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_size",
+            "description": "Maximum results per page.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "description": "The next_page_token returned from a previous list request if any.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order_by",
+            "description": "Specify the sort order for the results.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "DEFAULT"
+            ],
+            "default": "DEFAULT"
+          },
+          {
+            "name": "tracked",
+            "description": "indicates whether asset is still being tracked in the system.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "TRACKED_STATUS_UNSPECIFIED",
+              "TRACKED",
+              "NOT_TRACKED",
+              "ANY"
+            ],
+            "default": "TRACKED_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "confirmation_status",
+            "description": "indicates if the asset has been succesfully committed to the blockchain.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "CONFIRMATION_STATUS_UNSPECIFIED",
+              "PENDING",
+              "CONFIRMED",
+              "FAILED"
+            ],
+            "default": "CONFIRMATION_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "storage_integrity",
+            "description": "storage integrity of the asset (and all its events). the asset storage integrity level",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "STORAGE_INTEGRITY_UNSPECIFIED",
+              "LEDGER",
+              "TENANT_STORAGE"
+            ],
+            "default": "STORAGE_INTEGRITY_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ]
+      },
+      "post": {
+        "summary": "Create an Archivist asset",
+        "description": "Creates an Archivist asset",
+        "operationId": "Assets_CreateAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2AssetResponse"
+            }
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to create an Asset.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2CreateAssetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Assets"
+        ]
+      }
+    },
+    "/archivist/v2/assets/{asset_id}": {
+      "get": {
+        "summary": "Retrieves a specific Archivist asset",
+        "description": "Retrieves a specific Archivist asset",
+        "operationId": "Assets_GetAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2AssetResponse"
+            }
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to view an Asset.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the asset with the id does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "asset_id",
+            "description": "Specify asset `asset_id` as in `add30235-1424-4fda-840a-d5ef82c4c96f` from the relative resource name asset identity `assets/add30235-1424-4fda-840a-d5ef82c4c96f`",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "at_time",
+            "description": "specify time in the past to show asset data as it was at time specified",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ]
+      }
+    },
+    "/archivist/v2/assets/{asset_id}/events": {
+      "get": {
+        "summary": "List Archivist events",
+        "description": "Lists Archivist events",
+        "operationId": "Assets_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2ListEventsResponse"
+            }
+          },
+          "206": {
+            "description": "The number of events exceeds the servers limit. The approximate number of matching results is provided by the x-total-count header, the exact limit is available in the content-range header. The value format is 'items 0-LIMIT/TOTAL'.  Note that x-total-count is always present for 200 and 206 responses. It is the servers best available approximation. Similarly, in any result set, you may get a few more than LIMIT items.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to list Events.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "asset_id",
+            "description": "Specify asset `identity` as in `assets/add30235-1424-4fda-840a-d5ef82c4c96f`",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "description": "Maximum results per page.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "description": "The next_page_token returned from a previous list request if any.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order_by",
+            "description": "Specify the sort order for the results.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "DEFAULT"
+            ],
+            "default": "DEFAULT"
+          },
+          {
+            "name": "operation",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "behaviour",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "confirmation_status",
+            "description": "indicates if the asset has been succesfully committed to the blockchain.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "CONFIRMATION_STATUS_UNSPECIFIED",
+              "PENDING",
+              "CONFIRMED",
+              "FAILED"
+            ],
+            "default": "CONFIRMATION_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "principal_declared.issuer",
+            "description": "optional issuer of the principal identity. Where the issuer is not provided the subject is treated as a free string",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_declared.subject",
+            "description": "unique identifier of the principal (within issuer context)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_declared.display_name",
+            "description": "The displayable name of the end-user.  The name claim is prefered, followed by email claims, then a composite of  given_name, middle_name, family_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_declared.email",
+            "description": "The email for the end-user if available. If email_verified is  available it is preferd. Empty if neither email_verified or email  are provided by the IdP",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_accepted.issuer",
+            "description": "optional issuer of the principal identity. Where the issuer is not provided the subject is treated as a free string",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_accepted.subject",
+            "description": "unique identifier of the principal (within issuer context)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_accepted.display_name",
+            "description": "The displayable name of the end-user.  The name claim is prefered, followed by email claims, then a composite of  given_name, middle_name, family_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "principal_accepted.email",
+            "description": "The email for the end-user if available. If email_verified is  available it is preferd. Empty if neither email_verified or email  are provided by the IdP",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "timestamp_accepted_since",
+            "description": "Filtering. Only list events when timestamp_accepted is greater",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "timestamp_accepted_before",
+            "description": "Only list events when timestamp_accepted is lesser",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "timestamp_committed_since",
+            "description": "Only list events when timestamp_committed is greater",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "timestamp_committed_before",
+            "description": "Only list events when timestamp_committed is lesser",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "timestamp_declared_since",
+            "description": "Only list events when timestamp_declared is greater",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "timestamp_declared_before",
+            "description": "Only list events when timestamp_declared is lesser",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ]
+      }
+    },
+    "/archivist/v2/assets/{asset_id}/events/{event_id}": {
+      "get": {
+        "summary": "Retrieves Archivist event",
+        "description": "Retrieves a specific Archivist event",
+        "operationId": "Assets_GetEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2EventResponse"
+            }
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to view Event.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the event does not exist.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "asset_id",
+            "description": "Specify Asset `identity` as in `assets/add30235-1424-4fda-840a-d5ef82c4c96f`",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "event_id",
+            "description": "Specify Event `identifier` as in `events/11bf5b37-e0b8-42e0-8dcf-dc8c4aefc000`",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ListEventsRequestAssetQuery": {
+      "type": "object",
+      "properties": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "key value mapping of asset attributes"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v2AssetResponse": {
+      "type": "object",
+      "example": {
+        "identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f",
+        "behaviours": [
+          "RecordEvidence"
+        ],
+        "attributes": {
+          "arc_firmware_version": "3.2.1",
+          "arc_attachments": [
+            {
+              "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+              "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+              "arc_display_name": "Picture from yesterday",
+              "arc_hash_alg": "sha256"
+            }
+          ],
+          "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+        },
+        "confirmation_status": "PENDING",
+        "tracked": "TRACKED",
+        "owner": "0x601f5A7D3e6dcB55e87bf2F17bC8A27AaCD3511",
+        "at_time": "2019-11-27T14:44:19Z",
+        "storage_integrity": "TENANT_STORAGE"
+      },
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "relative resource address `assets/{UUID}`",
+          "title": "asset identity",
+          "readOnly": true
+        },
+        "behaviours": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "list of behaviours enabled for this asset",
+          "title": "list of enabled behaviours"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v2Attribute"
+          },
+          "description": "key value mapping of asset properties",
+          "title": "all the assets attributes"
+        },
+        "confirmation_status": {
+          "type": "string",
+          "$ref": "#/definitions/v2ConfirmationStatus",
+          "description": "indicates if the asset has been succesfully committed to the blockchain",
+          "title": "indicated if asset has been committed to the blockchain, possible values are CONFIRMED for committed, PENDING for not yet committed or FAILED for permanent failure",
+          "readOnly": true
+        },
+        "tracked": {
+          "type": "string",
+          "$ref": "#/definitions/v2TrackedStatus",
+          "description": "indicates whether asset is still being tracked in the system",
+          "title": "indicates if asset is being tracked in the system TRACKED or NOT_TRACKED",
+          "readOnly": true
+        },
+        "owner": {
+          "type": "string",
+          "description": "wallet address of the asset owner",
+          "title": "wallet address for the owner of this asset",
+          "readOnly": true
+        },
+        "at_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "indicates time the asset data is from",
+          "readOnly": true
+        },
+        "storage_integrity": {
+          "type": "string",
+          "$ref": "#/definitions/v2StorageIntegrity",
+          "description": "the asset storage integrity level",
+          "title": "storage integrity of the asset (and all its events)"
+        }
+      },
+      "description": "This describes Jitsuin Asset."
+    },
+    "v2Attribute": {
+      "type": "object",
+      "properties": {
+        "str_val": {
+          "type": "string"
+        },
+        "dict_val": {
+          "$ref": "#/definitions/v2DictAttr"
+        },
+        "list_val": {
+          "$ref": "#/definitions/v2ListAttr"
+        }
+      }
+    },
+    "v2ConfirmationStatus": {
+      "type": "string",
+      "enum": [
+        "CONFIRMATION_STATUS_UNSPECIFIED",
+        "PENDING",
+        "CONFIRMED",
+        "FAILED"
+      ],
+      "default": "CONFIRMATION_STATUS_UNSPECIFIED"
+    },
+    "v2CreateAssetRequest": {
+      "type": "object",
+      "example": {
+        "behaviours": [
+          "RecordEvidence",
+          "Attachments"
+        ],
+        "attributes": {
+          "arc_firmware_version": "3.2.1",
+          "arc_attachments": [
+            {
+              "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+              "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+              "arc_display_name": "Picture from yesterday",
+              "arc_hash_alg": "sha256"
+            }
+          ],
+          "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+        }
+      },
+      "properties": {
+        "behaviours": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "list of behaviours enabled for this asset",
+          "title": "list of enabled behaviours",
+          "maxLength": 1024
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v2Attribute"
+          },
+          "description": "key value mapping of event attributes",
+          "title": "event attributes for the assets creation",
+          "maxLength": 1024
+        },
+        "storage_integrity": {
+          "type": "string",
+          "$ref": "#/definitions/v2StorageIntegrity",
+          "description": "specify the asset storage integrity level"
+        }
+      },
+      "description": "This describes the body of a request to create new Jitsuin Asset."
+    },
+    "v2DictAttr": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v2EventResponse": {
+      "type": "object",
+      "example": {
+        "identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f/events/11bf5b37-e0b8-42e0-8dcf-dc8c4aefc000",
+        "asset_identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f",
+        "operation": "Record",
+        "behaviour": "RecordEvidence",
+        "event_attributes": {
+          "arc_attachments": [
+            {
+              "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+              "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+              "arc_display_name": "Picture from yesterday",
+              "arc_hash_alg": "sha256"
+            }
+          ]
+        },
+        "asset_attributes": {
+          "arc_firmware_version": "3.2.1",
+          "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+        },
+        "timestamp_accepted": "2019-11-27T14:44:19Z",
+        "timestamp_declared": "2019-11-27T14:44:19Z",
+        "timestamp_committed": "2019-11-27T14:44:19Z",
+        "principal_declared": {
+          "issuer": "job.idp.server/1234",
+          "subject": "bob@job"
+        },
+        "principal_accepted": {
+          "issuer": "job.idp.server/1234",
+          "subject": "bob@job"
+        },
+        "confirmation_status": "CONFIRMED",
+        "block_number": 12,
+        "transaction_index": 5,
+        "transaction_id": "0x07569"
+      },
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "identity of a event resource",
+          "title": "Relative Resource Name for the operation event",
+          "readOnly": true
+        },
+        "asset_identity": {
+          "type": "string",
+          "description": "identity of a related asset resource `assets/11bf5b37-e0b8-42e0-8dcf-dc8c4aefc000`",
+          "title": "relative resource name for associated asset ( asset the operation is performed on  - has to have specific behaviour enabled)",
+          "readOnly": true
+        },
+        "event_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v2Attribute"
+          },
+          "description": "key value mapping of event attributes"
+        },
+        "asset_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v2Attribute"
+          },
+          "description": "key value mapping of asset attributes"
+        },
+        "operation": {
+          "type": "string",
+          "description": "The operation represented by the event. `Record`",
+          "title": "name of operation on this behviour",
+          "readOnly": true,
+          "maxLength": 4096
+        },
+        "behaviour": {
+          "type": "string",
+          "description": "The behaviour used to create event. `RecordEvidence`",
+          "title": "name of this behaviour",
+          "readOnly": true,
+          "maxLength": 4096
+        },
+        "timestamp_declared": {
+          "type": "string",
+          "format": "date-time",
+          "description": "time of event as declared by the user",
+          "title": "timestamp when operation was actually performed - if not provided will be set to timestamp_accepted",
+          "readOnly": true
+        },
+        "timestamp_accepted": {
+          "type": "string",
+          "format": "date-time",
+          "description": "time of event as recorded by the server",
+          "title": "timestamp when system received operation request",
+          "readOnly": true
+        },
+        "timestamp_committed": {
+          "type": "string",
+          "format": "date-time",
+          "description": "time of event as recorded on blockchain",
+          "title": "timestamp operation has been committed on the blockchain",
+          "readOnly": true
+        },
+        "principal_declared": {
+          "type": "object",
+          "$ref": "#/definitions/v2Principal",
+          "description": "principal provided by the user",
+          "title": "principal information associated with event - if not provided will be set to principal_accepted",
+          "readOnly": true
+        },
+        "principal_accepted": {
+          "type": "object",
+          "$ref": "#/definitions/v2Principal",
+          "description": "principal recorded by the server",
+          "title": "principal logged into the system that performed the operation",
+          "readOnly": true
+        },
+        "confirmation_status": {
+          "type": "string",
+          "$ref": "#/definitions/v2ConfirmationStatus",
+          "description": "indicates if the event has been succesfully committed to the blockchain",
+          "title": "indicated if operation has been committed to the blockchain",
+          "readOnly": true
+        },
+        "transaction_id": {
+          "type": "string",
+          "description": "hash of the transaction as a hex string `0x11bf5b37e0b842e08dcfdc8c4aefc000`",
+          "title": "hash of transaction committing this operation on blockchain",
+          "maxLength": 4096
+        },
+        "block_number": {
+          "type": "string",
+          "format": "uint64",
+          "description": "number of block event was commited on",
+          "title": "block number of committing transaction",
+          "readOnly": true
+        },
+        "transaction_index": {
+          "type": "string",
+          "format": "uint64",
+          "description": "index of event within commited block",
+          "title": "transaction index of committing transaction",
+          "readOnly": true
+        },
+        "from": {
+          "type": "string",
+          "description": "wallet address for the creator of this event",
+          "title": "wallet address for the creator of this event",
+          "readOnly": true
+        }
+      },
+      "description": "This describes Jitsuin Event."
+    },
+    "v2ListAssetsRequestOrderBy": {
+      "type": "string",
+      "enum": [
+        "DEFAULT"
+      ],
+      "default": "DEFAULT",
+      "title": "Supported sort orders"
+    },
+    "v2ListAssetsResponse": {
+      "type": "object",
+      "example": {
+        "assets": [
+          {
+            "identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f",
+            "behaviours": [
+              "RecordEvidence"
+            ],
+            "attributes": {
+              "arc_firmware_version": "3.2.1",
+              "arc_attachments": [
+                {
+                  "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+                  "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                  "arc_display_name": "Picture from yesterday",
+                  "arc_hash_alg": "sha256"
+                }
+              ],
+              "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+            },
+            "confirmation_status": "PENDING",
+            "tracked": "TRACKED",
+            "owner": "0x601f5A7D3e6dcB55e87bf2F17bC8A27AaCD3511",
+            "at_time": "2019-11-27T14:44:19Z",
+            "storage_integrity": "TENANT_STORAGE"
+          },
+          {
+            "identity": "assets/cef61346-2453-5aeb-921c-e6fa93d5b032",
+            "behaviours": [
+              "RecordEvidence"
+            ],
+            "attributes": {
+              "arc_firmware_version": "3.2.1",
+              "arc_attachments": [
+                {
+                  "arc_attachment_identity": "blobs/2865ca31-d01f-5e6f-4621-de562470732e",
+                  "arc_hash_value": "12bc4819d90b6fe911b091a7c05134b65edfce045e09b048caaa7916ecdd458c",
+                  "arc_display_name": "Picture",
+                  "arc_hash_alg": "sha256"
+                }
+              ],
+              "arc_home_location_identity": "locations/53165a2c-6054-dd68-f093-a0e1e21304fd"
+            },
+            "confirmation_status": "PENDING",
+            "tracked": "TRACKED",
+            "owner": "0x601f5A7D3e6dcB55e87bf2F17bC8A27AaCD3511",
+            "at_time": "2019-11-27T14:44:19Z",
+            "storage_integrity": "TENANT_STORAGE"
+          }
+        ],
+        "next_page_token": "abcd"
+      },
+      "properties": {
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2AssetResponse"
+          }
+        },
+        "next_page_token": {
+          "type": "string",
+          "description": "Token to retrieve the next page of results or empty if there are none."
+        }
+      },
+      "description": "A list of assets returned data identical to `Asset`"
+    },
+    "v2ListAttr": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2DictAttr"
+          }
+        }
+      }
+    },
+    "v2ListEventsRequestOrderBy": {
+      "type": "string",
+      "enum": [
+        "DEFAULT"
+      ],
+      "default": "DEFAULT",
+      "title": "Supported sort orders"
+    },
+    "v2ListEventsResponse": {
+      "type": "object",
+      "example": {
+        "events": [
+          {
+            "identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f/events/11bf5b37-e0b8-42e0-8dcf-dc8c4aefc000",
+            "asset_identity": "assets/add30235-1424-4fda-840a-d5ef82c4c96f",
+            "operation": "Record",
+            "behaviour": "RecordEvidence",
+            "event_attributes": {
+              "arc_attachments": [
+                {
+                  "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+                  "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                  "arc_display_name": "Picture from yesterday",
+                  "arc_hash_alg": "sha256"
+                }
+              ]
+            },
+            "asset_attributes": {
+              "arc_firmware_version": "3.2.1",
+              "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+            },
+            "timestamp_accepted": "2019-11-27T14:44:19Z",
+            "timestamp_declared": "2019-11-27T14:44:19Z",
+            "timestamp_committed": "2019-11-27T14:44:19Z",
+            "principal_declared": {
+              "issuer": "job.idp.server/1234",
+              "subject": "bob@job"
+            },
+            "principal_accepted": {
+              "issuer": "job.idp.server/1234",
+              "subject": "bob@job"
+            },
+            "confirmation_status": "CONFIRMED",
+            "block_number": 12,
+            "transaction_index": 5,
+            "transaction_id": "0x07569"
+          },
+          {
+            "identity": "assets/bf330235-1424-4fda-840a-d5ef82c4c96f/events/23c06c48-e0b8-42e0-8dcf-dc8c4fdad123",
+            "asset_identity": "assets/bf330235-1424-4fda-840a-d5ef82c4c96f",
+            "operation": "Record",
+            "behaviour": "RecordEvidence",
+            "event_attributes": {
+              "arc_attachments": [
+                {
+                  "arc_attachment_identity": "blobs/1754b920-cf20-4d7e-9d36-9ed7d479744d",
+                  "arc_hash_value": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                  "arc_display_name": "Picture",
+                  "arc_hash_alg": "sha256"
+                }
+              ]
+            },
+            "asset_attributes": {
+              "arc_firmware_version": "3.2.1",
+              "arc_home_location_identity": "locations/42054f10-9952-4c10-a082-9fd0d10295ae"
+            },
+            "timestamp_accepted": "2019-07-27T14:44:19Z",
+            "timestamp_declared": "2019-07-27T14:44:19Z",
+            "timestamp_committed": "2019-07-27T14:44:19Z",
+            "principal_declared": {
+              "issuer": "job.idp.server/1234",
+              "subject": "bob@job"
+            },
+            "principal_accepted": {
+              "issuer": "job.idp.server/1234",
+              "subject": "bob@job"
+            },
+            "confirmation_status": "CONFIRMED",
+            "block_number": 13,
+            "transaction_index": 6,
+            "transaction_id": "0x12569"
+          }
+        ],
+        "next_page_token": "abcd"
+      },
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2EventResponse"
+          }
+        },
+        "next_page_token": {
+          "type": "string",
+          "description": "Token to retrieve the next page of results or empty if there are none."
+        }
+      },
+      "description": "A list of event records returned data identical to `EventRecord`"
+    },
+    "v2Principal": {
+      "type": "object",
+      "example": {
+        "issuer": "job.idp.server/1234",
+        "subject": "bob@job"
+      },
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "description": "optional issuer of the principal identity. Where the issuer is not provided the subject is treated as a free string",
+          "maxLength": 1024
+        },
+        "subject": {
+          "type": "string",
+          "description": "unique identifier of the principal (within issuer context)",
+          "maxLength": 1024
+        },
+        "display_name": {
+          "type": "string",
+          "description": "The displayable name of the end-user.  The name claim is prefered, followed by email claims, then a composite of  given_name, middle_name, family_name",
+          "maxLength": 1024
+        },
+        "email": {
+          "type": "string",
+          "description": "The email for the end-user if available. If email_verified is  available it is preferd. Empty if neither email_verified or email  are provided by the IdP",
+          "maxLength": 1024
+        }
+      },
+      "description": "The principal description assured by the configured Identity  Provider. All values are according to OIDC id token claims and  standard claims.  See https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims"
+    },
+    "v2StorageIntegrity": {
+      "type": "string",
+      "enum": [
+        "STORAGE_INTEGRITY_UNSPECIFIED",
+        "LEDGER",
+        "TENANT_STORAGE"
+      ],
+      "default": "STORAGE_INTEGRITY_UNSPECIFIED",
+      "description": "Specifies how the asset data will be stored. This is set once on creation\nand does not change."
+    },
+    "v2TrackedStatus": {
+      "type": "string",
+      "enum": [
+        "TRACKED_STATUS_UNSPECIFIED",
+        "TRACKED",
+        "NOT_TRACKED",
+        "ANY"
+      ],
+      "default": "TRACKED_STATUS_UNSPECIFIED"
+    }
+  }
+}
