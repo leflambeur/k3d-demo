@@ -1,0 +1,433 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Tenancies API",
+    "description": "API to manage tenancies",
+    "version": "1.0",
+    "contact": {
+      "name": "Jitsuin",
+      "url": "https://www.jitsuin.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "Tenancies"
+    }
+  ],
+  "host": "docs.rkvst.com",
+  "basePath": "/api/archivist/v1/tenancies",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/archivist/v1/tenancies/caps": {
+      "get": {
+        "summary": "Fetch the map of resource: caps for the authenticated principal's tenant",
+        "description": "Fetch the map of resource: caps for the authenticated principal's tenant",
+        "operationId": "Tenancies_GetLimitsForCurrentTenant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetLimitsForCurrentTenantResponse"
+            }
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Tenancies",
+          "Unsupported"
+        ]
+      }
+    },
+    "/archivist/v1/tenancies/root_principals": {
+      "get": {
+        "summary": "Fetch the current list of tenant root user principals",
+        "description": "Fetch the current list of tenant root user principals.",
+        "operationId": "Tenancies_GetTenantRootPrincipals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTenantRootPrincipalsResponse"
+            }
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to update the root principals.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Tenancies"
+        ]
+      },
+      "patch": {
+        "summary": "Update the list of tenant root user principals",
+        "description": "Replace the list of tenant root user principals.  Note that you are not able to remove yourself from the list.",
+        "operationId": "Tenancies_UpdateTenantRootPrincipals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTenantRootPrincipalsResponse"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is badly formed.  Including, but not limited to, attempting to remove yourself as a root uesr principal.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to update the root principals.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdateTenantRootPrincipalsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Tenancies"
+        ]
+      }
+    },
+    "/archivist/v1/tenancies/tenantid": {
+      "get": {
+        "summary": "Get ID of tenant associated with issuer and/or subject, and create if not exists.",
+        "description": "Get ID of tenant associated with issuer and/or subject, and create if not exists.",
+        "operationId": "Tenancies_GetTenantID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TenantIDResponse"
+            }
+          },
+          "400": {
+            "description": "Returned when the user doesn't provide an issuer or subject to filter on.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Returned when the user is not authenticated to the system.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Returned when the user is not authorized to retrieve the tenant id.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "description": "Issuer of the principal identity.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Unique identifier of the principal (within issuer context.) Used if social.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "is_social",
+            "description": "Is the issuer social?",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "Tenancies"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GetLimitsForCurrentTenantResponse": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": "map of caps for authenticated principal's tenancy",
+          "readOnly": true
+        }
+      }
+    },
+    "v1GetTenantRootPrincipalsResponse": {
+      "type": "object",
+      "example": {
+        "root_principals": [
+          {
+            "display_name": "Bob Smith",
+            "issuer": "job.idp.server/1234",
+            "subject": "08838336-c357-460d-902a-3aba9528dd22",
+            "email": "bob@job"
+          }
+        ]
+      },
+      "properties": {
+        "root_principals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Principal"
+          }
+        }
+      },
+      "description": "List of tenant root user principals",
+      "title": "A list of current tenant root user principals"
+    },
+    "v1ListTenantsResponse": {
+      "type": "object",
+      "properties": {
+        "tenants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TenantResponse"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TenantIDResponse": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "tenant identity `{UUID}`",
+          "readOnly": true
+        }
+      }
+    },
+    "v1TenantLimitsResponse": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "tenant identity `{UUID}`",
+          "readOnly": true
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    "v1TenantResponse": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "tenant identity `{UUID}`",
+          "readOnly": true
+        },
+        "root_principal": {
+          "$ref": "#/definitions/v2Principal",
+          "title": "root_principal is DEPRECATED and will be removed in a future release\nit remains for old installations and for the one true tenant IDP issuer"
+        },
+        "wallet_key_name": {
+          "type": "string"
+        },
+        "wallet_address": {
+          "type": "string"
+        },
+        "tessera_key_name": {
+          "type": "string"
+        },
+        "tessera_public_key": {
+          "type": "string"
+        },
+        "root_principals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Principal"
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "storage_integrity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2StorageIntegrity"
+          },
+          "description": "storage_integrity includes the enabled storage_integrity values for the tenant.\nCurrently we only support LEDGER *and* TENANT_STORAGE or just TENANT_STORAGE\nThis is oly here for migration to new ProofMechanism - will be reserved at a \nlater date."
+        },
+        "proof_mechanism": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2ProofMechanism"
+          },
+          "title": "proof_mechanism includes the enabled proof_mechanism values for the tenant.\nCurrently we only support KHIPU *and* SIMPLE_HASH or just SIMPLE_HASH"
+        }
+      },
+      "title": "Tenant information"
+    },
+    "v1UpdateTenantRootPrincipalsRequest": {
+      "type": "object",
+      "example": {
+        "root_principals": [
+          {
+            "display_name": "Bob Smith",
+            "issuer": "job.idp.server/1234",
+            "subject": "08838336-c357-460d-902a-3aba9528dd22",
+            "email": "bob@job"
+          }
+        ]
+      },
+      "properties": {
+        "root_principals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Principal"
+          },
+          "description": "New list of tenant root user principals"
+        }
+      },
+      "description": "Update the list of tenant root user principals",
+      "title": "Update the list of tenant root user principals"
+    },
+    "v2Principal": {
+      "type": "object",
+      "example": {
+        "issuer": "job.idp.server/1234",
+        "subject": "bob@job"
+      },
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "description": "optional issuer of the principal identity. Where the issuer is not provided the subject is treated as a free string",
+          "maxLength": 1024
+        },
+        "subject": {
+          "type": "string",
+          "description": "unique identifier of the principal (within issuer context)",
+          "maxLength": 1024
+        },
+        "display_name": {
+          "type": "string",
+          "description": "The displayable name of the end-user.  The name claim is prefered, followed by email claims, then a composite of  given_name, middle_name, family_name",
+          "maxLength": 1024
+        },
+        "email": {
+          "type": "string",
+          "description": "The email for the end-user if available. If email_verified is  available it is preferd. Empty if neither email_verified or email  are provided by the IdP",
+          "maxLength": 1024
+        }
+      },
+      "description": "The principal description assured by the configured Identity  Provider. All values are according to OIDC id token claims and  standard claims.  See https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims"
+    },
+    "v2ProofMechanism": {
+      "type": "string",
+      "enum": [
+        "PROOF_MECHANISM_UNSPECIFIED",
+        "KHIPU",
+        "SIMPLE_HASH",
+        "TRIE_HASH"
+      ],
+      "default": "PROOF_MECHANISM_UNSPECIFIED"
+    },
+    "v2StorageIntegrity": {
+      "type": "string",
+      "enum": [
+        "STORAGE_INTEGRITY_UNSPECIFIED",
+        "LEDGER",
+        "TENANT_STORAGE"
+      ],
+      "default": "STORAGE_INTEGRITY_UNSPECIFIED",
+      "description": "Specifies how the asset data will be stored. This is set once on creation\nand does not change."
+    }
+  }
+}
