@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-demo
+  labels:
+    name: ai-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-demo
+  labels:
+    app: ai-demo
+  namespace: ai-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-demo
+  template:
+    metadata:
+      labels:
+        app: ai-demo
+    spec:
+      containers:
+      - name: ai-demo
+        image: yewnorosen/yifan-demo
+        ports:
+        - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ai-demo-svc
+  namespace: ai-demo
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector: 
+    app: ai-demo
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: http-redirect-ingressroute
+  namespace: ai-demo
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/ai-demo`)
+      kind: Rule
+      services:
+        - name: ai-demo-svc
+          namespace: ai-demo
+          port: 80
+          scheme: http
+      middlewares:
+        - name: ai-demo-prefix
+---
+# Replace path with regex
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: ai-demo-prefix
+  namespace: ai-demo
+spec:
+  stripPrefix:
+    prefixes:
+      - /ai-demo
