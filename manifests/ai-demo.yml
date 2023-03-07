@@ -70,4 +70,4 @@ metadata:
 spec:
   stripPrefix:
     prefixes:
-      - /ai-demo
+      - /ai-demo 
