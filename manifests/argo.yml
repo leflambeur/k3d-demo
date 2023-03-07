@@ -89,4 +89,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: argo-argo-workflows-workflow-controller
-    namespace: argo
+    namespace: argo 
