@@ -185,4 +185,4 @@ spec:
             dependencies: [parse-sbom-output, prepare-sbom-file]
           - name: publish-image
             template: builder
-            dependencies: [create-release-event]
+            dependencies: [create-release-event] 
